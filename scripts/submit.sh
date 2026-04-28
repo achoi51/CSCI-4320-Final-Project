@@ -1,15 +1,16 @@
 #!/bin/bash
 #SBATCH --job-name=eigensolver
+#SBATCH --partition=el8-rpi
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=4
 #SBATCH --gres=gpu:4
-#SBATCH --time=02:00:00
+#SBATCH --time=00:30:00
 #SBATCH --output=results/eigensolver_%j.out
 #SBATCH --error=results/eigensolver_%j.err
 
 set -euo pipefail
 
-module load gcc cuda openmpi || true
+module load xl_r spectrum-mpi cuda
 
 mkdir -p results
 

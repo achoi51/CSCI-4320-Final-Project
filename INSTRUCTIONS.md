@@ -26,13 +26,18 @@ The Makefile detects the toolchain from the standard MPI compiler wrappers
 
 ### 2.1 Hybrid MPI + CUDA (AiMOS)
 
+On AiMOS, `cuda` is gated behind the IBM XL compiler module — load `xl_r`
+first or the bare `cuda` request fails with `cannot be loaded as
+requested`:
+
 ```bash
-module load gcc cuda spectrum-mpi
+module load xl_r spectrum-mpi cuda   # default is cuda 11.2
 make
 ```
 
 This produces `build/eigensolver`. The CUDA architecture defaults to
-`sm_70` (V100). Override for other GPUs with:
+`sm_70` (V100), which is what the dcs nodes have. Override for other GPUs
+with:
 
 ```bash
 make CUDA_ARCH=sm_80
@@ -77,19 +82,75 @@ make clean
 --output PATH                        eigenvalue output (default results/eigvals.dat)
 ```
 
-### 3.2 Single-node interactive (AiMOS debug queue)
+### 3.2 Single-node interactive (AiMOS class workflow)
+
+The CSCI-4320 class workflow on AiMOS is `salloc` + `ssh`, not direct
+`mpirun` from the front end. Max 30 min per job, max 16 nodes per job.
 
 ```bash
-salloc -N 1 -n 4 --gres=gpu:4 -t 00:30:00 -p debug
+salloc -N 1 --partition=el8-rpi --gres=gpu:4 -t 30
+squeue -u $USER                 # find the dcsXYZ name (e.g. dcs24)
+ssh dcs24                       # ssh to the allocated node
+cd <repo>
+module load xl_r spectrum-mpi cuda
 mpirun -np 4 ./build/eigensolver \
     --solver lanczos --matrix dense \
     --matrix-size 4096 --num-eigenvalues 10
+exit                            # back to front end
+scancel <JOBID>                 # if you're done before the walltime
 ```
 
 ### 3.3 Batch submission (AiMOS)
 
 ```bash
 sbatch scripts/submit.sh
+```
+
+#### 3.3.1 Bare-minimum smoke test (AiMOS)
+
+Use this when you just need *something* to land on a node and produce a
+result file. It requests **1 node, 2 ranks, 1 GPU, 10 minutes** on the
+`el8-rpi` partition — well under the 30-minute class limit, so it slots
+in quickly:
+
+```bash
+module load xl_r spectrum-mpi cuda     # xl_r must come first or `cuda` fails to resolve
+make                                   # or `make cpu` if CUDA isn't available yet
+sbatch scripts/submit_smoke.sh
+```
+
+The script falls back to `build/eigensolver_cpu` automatically if the
+CUDA build isn't there.
+
+#### 3.3.2 Interactive smoke test (no sbatch)
+
+If you'd rather use the class's `salloc` + `ssh` flow:
+
+```bash
+salloc -N 1 --partition=el8-rpi --gres=gpu:4 -t 30
+squeue -u $USER                        # find dcsXYZ
+ssh dcsXYZ
+cd <repo>
+./scripts/run_smoke_interactive.sh
+```
+
+What you'll get back (in `results/smoke_<jobid>.out`):
+
+- a header line with hostname / job id / ntasks
+- the solver's `=== Eigensolver configuration ===` block
+- top-4 eigenvalues of a 512x512 dense symmetric matrix
+- the `=== Solver stats ===` timing summary (`t_compute`, `t_comm`, `t_total`)
+
+And `results/smoke_eigvals_<jobid>.dat` with the four eigenvalues, one per
+line. Total runtime is a few seconds; the 10-minute wall clock is just
+slack so the scheduler doesn't reject it.
+
+Check status / fetch results:
+
+```bash
+squeue -u $USER
+ls -lt results/smoke_*.out | head
+cat results/smoke_*.out
 ```
 
 Override defaults via environment variables:
@@ -206,8 +267,10 @@ benchmark matrices.
 
 | Symptom | Likely cause / fix |
 |---------|--------------------|
-| `nvcc: command not found` during `make` | Use `make cpu`, or `module load cuda` |
-| `mpicc: command not found` | Install OpenMPI / load the MPI module |
+| `nvcc: command not found` during `make` | Use `make cpu`, or `module load xl_r spectrum-mpi cuda` (on AiMOS, `xl_r` must come first) |
+| `cuda ... cannot be loaded as requested` (Lmod) | On AiMOS, load `xl_r` first: `module load xl_r spectrum-mpi cuda` |
+| `mpicc: command not found` | Install OpenMPI / load the MPI module (on AiMOS: `spectrum-mpi`) |
+| sbatch job never runs / pending forever | Check `--partition=el8-rpi` is set and `--time` is `<= 00:30:00` (class limit) |
 | `warning: N is not divisible by ranks` | Tail rank takes remainder; for clean scaling pick `N % ranks == 0` |
 | Lanczos returns garbage eigenvalues | Increase `--max-iterations`, lower `--tolerance`, or check matrix is symmetric (use `--solver arnoldi` for non-symmetric) |
 | `clock_now()` returns wall-clock on local builds | Expected — POWER9 timebase only available on AiMOS; the macOS/Linux fallback uses `CLOCK_MONOTONIC` scaled to the same units |
