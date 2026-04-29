@@ -1,0 +1,39 @@
+=== Eigensolver configuration ===
+  solver       : lanczos
+  matrix       : dense-sym
+  N            : 4096
+  num_eigs     : 20
+  max_iters    : 500
+  tolerance    : 1.00e-10
+  use_gpu      : yes
+  output       : results/weak_p1_n4096.dat
+MPI ranks: 1
+CUDA: enabled (this rank gpu=0)
+=== Lanczos eigenvalues (top 20) ===
+  lambda[0] = 4.1670197205e+03
+  lambda[1] = 4.1671251377e+03
+  lambda[2] = 4.1673067496e+03
+  lambda[3] = 4.1673912353e+03
+  lambda[4] = 4.1674078115e+03
+  lambda[5] = 4.1675191249e+03
+  lambda[6] = 4.1675611803e+03
+  lambda[7] = 4.1677539731e+03
+  lambda[8] = 4.1678618074e+03
+  lambda[9] = 4.1679133612e+03
+  lambda[10] = 4.1680162649e+03
+  lambda[11] = 4.1681269187e+03
+  lambda[12] = 4.1682437924e+03
+  lambda[13] = 4.1683453780e+03
+  lambda[14] = 4.1685271557e+03
+  lambda[15] = 4.1686474170e+03
+  lambda[16] = 4.1687939921e+03
+  lambda[17] = 4.1691824363e+03
+  lambda[18] = 4.1693671429e+03
+  lambda[19] = 4.1696814205e+03
+=== Solver stats ===
+  iterations   : 394
+  converged    : yes
+  t_compute    : 0.321462 s
+  t_comm       : 0.138118 s
+  t_io         : 0.000000 s
+  t_total      : 14.291597 s

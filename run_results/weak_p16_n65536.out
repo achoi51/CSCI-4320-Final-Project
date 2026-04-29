@@ -1,0 +1,11 @@
+=== Eigensolver configuration ===
+  solver       : lanczos
+  matrix       : dense-sym
+  N            : 65536
+  num_eigs     : 20
+  max_iters    : 500
+  tolerance    : 1.00e-10
+  use_gpu      : yes
+  output       : results/weak_p16_n65536.dat
+MPI ranks: 16
+CUDA: enabled (this rank gpu=0)

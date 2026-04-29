@@ -1,0 +1,29 @@
+=== Eigensolver configuration ===
+  solver       : lanczos
+  matrix       : dense-sym
+  N            : 8192
+  num_eigs     : 10
+  max_iters    : 200
+  tolerance    : 1.00e-09
+  use_gpu      : yes
+  output       : results/cmp_gpu_n8192.dat
+MPI ranks: 16
+CUDA: enabled (this rank gpu=0)
+=== Lanczos eigenvalues (top 10) ===
+  lambda[0] = 8.2945943052e+03
+  lambda[1] = 8.2947093009e+03
+  lambda[2] = 8.2950165942e+03
+  lambda[3] = 8.2953157477e+03
+  lambda[4] = 8.2954171420e+03
+  lambda[5] = 8.2955925466e+03
+  lambda[6] = 8.2956323051e+03
+  lambda[7] = 8.2959228663e+03
+  lambda[8] = 8.2960131364e+03
+  lambda[9] = 8.2963392449e+03
+=== Solver stats ===
+  iterations   : 200
+  converged    : no
+  t_compute    : 0.230042 s
+  t_comm       : 0.375863 s
+  t_io         : 0.000000 s
+  t_total      : 2.208991 s
